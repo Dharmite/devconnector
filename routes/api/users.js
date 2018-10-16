@@ -13,6 +13,11 @@ Passport serve para validar esse token e para extrair essa informação
 
 */
 
+// Load input validation
+const validateRegisterInput = require('../../validation/register')
+const validateLoginInput = require('../../validation/login')
+
+
 // Load user model
 const User = require("../../models/User");
 
@@ -29,6 +34,14 @@ router.get("/test", (req, res) => {
 // @access Public
 
 router.post("/register", (req, res) => {
+
+   const {errors, isValid} = validateRegisterInput(req.body);
+   if(!isValid){
+
+    return res.status(400).json(errors);
+    
+   }
+
   User.findOne({ email: req.body.email }).then(user => {
     if (user) {
       return res.status(400).json({ email: "Email already exits" });
@@ -64,6 +77,14 @@ router.post("/register", (req, res) => {
 // @access Public
 
 router.post("/login", (req, res) => {
+
+  const {errors, isValid} = validateLoginInput(req.body);
+  if(!isValid){
+
+   return res.status(400).json(errors);
+   
+  }
+
   const email = req.body.email;
   const password = req.body.password;
 
@@ -73,7 +94,9 @@ router.post("/login", (req, res) => {
     // check for user
 
     if (!user) {
-      return res.status(404).json({ email: "User not found" });
+
+      errors.email = "User not found";
+      return res.status(404).json(errors.email);
     }
 
     // check user password
@@ -100,7 +123,9 @@ router.post("/login", (req, res) => {
 
         });
       } else {
-        return res.status(400).json({ password: "Incorrect password" });
+
+        errors.password = "Incorrect password";
+        return res.status(400).json(errors.password);
       }
     });
   });
